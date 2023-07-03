@@ -1,107 +1,73 @@
+# virtual_machine
+variable "name" {
+  type        = string
+  description = "Name for the virtual machine. Must not contain uppercase maximum of 15 characters length"
+}
+
 variable "resource_group_name" {
   type        = string
-  description = "name of the resource group"
+  description = "Name of the resource group inside which the VM will be created in"
 }
 
 variable "location" {
   type        = string
-  description = "location of the resource group"
+  description = "Location of the resource group. Must be one of following, Central India or South India"
 }
-# Virtual Machine
-variable "name" {
+
+variable "size" {
   type        = string
-  description = "Specifies the name of the Virtual Machine. Changing this forces a new resource to be created."
+  description = "Specifies the size of the Virtual Machine based on number of core and RAM.Refer documentation for all options"
 }
 
-variable "vm_size" {
+variable "admin_username" {
   type        = string
-  description = "Specifies the size of the Virtual Machine. See also Azure VM Naming Conventions."
-}
-variable "delete_os_disk_on_termination" {
-  type        = bool
-  description = " Should the OS {{.name}} (either the Managed {{.name}} / VHD Blob) be deleted when the Virtual Machine is destroyed? Defaults to false."
-  default     = true
+  description = "Specifies the name of the local administrator account."
+  default = "user01"
 }
 
-variable "delete_data_disks_on_termination" {
-  type        = bool
-  description = "Should the Data {{.name}}s (either the Managed {{.name}}s / VHD Blobs) be deleted when the Virtual Machine is destroyed? Defaults to false."
-  default     = true
-}
-variable "disable_password_authentication" {
-  type        = bool
-  description = "Specifies whether password authentication should be disabled. If set to false, an admin_password must be specified."
-  default     = false
-}
 
-variable "timezone" {
-  type        = string
-  description = "(optional) describe your variable"
-  default     = "India Standard Time"
-}
-
-# storage_image_reference
+# source_image_reference
 variable "publisher" {
   type        = string
-  description = " Specifies the publisher of the image used to create the virtual machine. Examples: Canonical, MicrosoftWindowsServer"
-  default = "Canonical"
+  description = "Specifies the Publisher of the Marketplace Image this Virtual Machine should be created from.View documentation for all options"
+  default     = "Canonical"
 }
 
 variable "offer" {
   type        = string
-  description = "Specifies the offer of the image used to create the virtual machine. Examples: UbuntuServer, WindowsServer"
+  description = " Specifies the offer of the image used to create the virtual machines.View documentation for all options "
 }
 
 variable "sku" {
   type        = string
-  description = "Specifies the SKU of the image used to create the virtual machine. Examples: 18.04-LTS, 2019-Datacenter"
+  description = "Specifies the SKU of the image used to create the virtual machines.View documentation for all options"
+
 }
 
 variable "storage_image_version" {
   type        = string
-  description = "Specifies the version of the image used to create the virtual machine. Changing this forces a new resource to be created."
+  description = "Specifies the Operating System version on the OS Disk. View documentation for all options"
+
 }
 
 
-# storage_os_{{.name}}
+# os_disk
 variable "caching" {
   type        = string
   description = "Specifies the caching requirements for the Data {{.name}}. Possible values include None, ReadOnly and ReadWrite."
   default     = "ReadWrite"
 }
 
-variable "create_option" {
+variable "storage_account_type" {
   type        = string
-  description = "Specifies how the data {{.name}} should be created. Possible values are Attach, FromImage and Empty."
-  default     = "FromImage"
-}
-
-variable "managed_disk_type" {
-  type        = string
-  description = "Specifies the type of managed disk to create. Possible values are either Standard_LRS, StandardSSD_LRS, Premium_LRS or UltraSSD_LRS."
+  description = "The Type of Storage Account which should back this the Internal OS Disk. Possible values are Standard_LRS, StandardSSD_LRS, Premium_LRS, StandardSSD_ZRS and Premium_ZRS"
   default = "Standard_LRS"
 }
 
-variable "os_type" {
+variable "disk_size_gb" {
   type        = string
-  description = "Specifies the Operating System on the OS {{.name}}. Possible values are Linux and Windows."
-  default = "Linux"
-}
+  description = "The Size of the Internal OS Disk in GB, if you wish to vary from the size used in the image this Virtual Machine is sourced from."
 
-# os_profile
-variable "admin_username" {
-  type        = string
-  description = "Specifies the name of the local administrator account."
-}
-
-variable "admin_password" {
-  type        = string
-  description = "The password associated with the local administrator account."
-}
-
-variable "custom_data" {
-  type        = string
-  description = "Specifies custom data to supply to the machine. On Linux-based systems, this can be used as a cloud-init script."
 }
 
 # azurerm_network_interface
@@ -113,7 +79,7 @@ variable "ip_name" {
 
 variable "subnet_id" {
   type        = string
-  description = "The ID of the Subnet where this Network Interface should be located in."
+  description = "The ID of the Subnet where this Network Interface should be located in. Select subnet according to factors 1.application server (appsubnet) 2. web server (websubnet) 3. database server (dbsubnet)"
 }
 
 variable "private_ip_address_allocation" {
@@ -121,6 +87,7 @@ variable "private_ip_address_allocation" {
   description = "The allocation method used for the Private IP Address. Possible values are Dynamic and Static"
   default = "Dynamic"
 }
+
 # azurerm_network_security_rule
 variable "nsg_rules" {
   type = map(object({
@@ -148,20 +115,18 @@ variable "nsg_rules" {
     }
   }
 }
+
 # azurerm_recovery_services_vault
 variable "recovery_services_vault_name" {
   type        = string
-  description = "name of the azurerm_network_security_group"
+  description = "name of the recover service vault"
 }
 variable "services_vault_resource_group_name" {
   type        = string
-  description = "name of the azurerm_network_security_group"
+  description = "name of resource group where the recovery service vault reside in"
 }
 
-
-
-//load_balancer 
-
+# public IP
 variable "ip_version" {
   type        = string
   description = "The IP Version to use"
