@@ -165,7 +165,7 @@ resource "azurerm_lb_backend_address_pool" "backend_pool" {
 # Creates association between LB and vm 
 resource "azurerm_network_interface_backend_address_pool_association" "backend_association" {
   network_interface_id    = azurerm_network_interface.nic.id
-  ip_configuration_name   = "${var.name}-ip"
+  ip_configuration_name   = var.ip_name
   backend_address_pool_id = azurerm_lb_backend_address_pool.backend_pool.id
   depends_on = [
     azurerm_network_interface.nic,
