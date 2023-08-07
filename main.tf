@@ -55,7 +55,7 @@ resource "azurerm_network_security_group" "nsg" {
   name                = "${var.name}-nsg"
   location            = azurerm_linux_virtual_machine.vm.location
   resource_group_name = azurerm_linux_virtual_machine.vm.resource_group_name
-    lifecycle {
+  lifecycle {
     ignore_changes = [
       tags,
     ]
@@ -225,4 +225,4 @@ resource "random_password" "password" {
   upper       = true
 
 
-}
+} 
