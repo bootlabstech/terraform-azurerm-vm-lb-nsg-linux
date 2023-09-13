@@ -22,7 +22,12 @@ variable "size" {
 variable "admin_username" {
   type        = string
   description = "Specifies the name of the local administrator account."
-  default = "user01"
+}
+variable "disable_password_authentication" {
+  type        = bool
+  description = "Specifies the name of the local administrator account."
+  default = false
+  
 }
 
 
@@ -167,4 +172,9 @@ variable "probe_ports" {
   type        = number
   description = "(optional) describe your variable"
   default     = "443"
+}
+variable "keyvault_name" {
+  description = "The Keyvault name where VM password will be stored in"
+  type = string
+  
 }
