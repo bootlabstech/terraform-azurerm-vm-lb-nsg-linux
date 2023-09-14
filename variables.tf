@@ -52,7 +52,7 @@ variable "sku" {
 variable "storage_image_version" {
   type        = string
   description = "Specifies the Operating System version on the OS Disk. View documentation for all options"
-
+  default = "latest"
 }
 
 

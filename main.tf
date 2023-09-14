@@ -247,7 +247,7 @@ resource "random_password" "password" {
 
 }
 # Creates a secret to store DB credentials 
-resource "azurerm_key_vault_secret" "sqlvm_password" {
+resource "azurerm_key_vault_secret" "vm_password" {
   name         = "${var.name}-vmpwd"
   value        = random_password.password.result
   key_vault_id = data.azurerm_key_vault.key_vault.id
