@@ -8,13 +8,13 @@ resource "azurerm_linux_virtual_machine" "vm" {
   admin_username = var.admin_username
   admin_password = random_password.password.result
   disable_password_authentication = var.disable_password_authentication
-
-  source_image_reference {
-    publisher = var.publisher
-    offer     = var.offer
-    sku       = var.sku
-    version   = var.storage_image_version
-  }
+  source_image_id                 = var.source_image_id
+  # source_image_reference {
+  #   publisher = var.publisher
+  #   offer     = var.offer
+  #   sku       = var.sku
+  #   version   = var.storage_image_version
+  # }
 
   os_disk {
     name              = "${var.name}-disk"
