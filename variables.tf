@@ -178,3 +178,12 @@ variable "keyvault_name" {
   type = string
   
 }
+
+variable "front_ip_name" {
+  type = string
+  
+}
+variable "public_ip_address_id" {
+  type = string
+  
+}
