@@ -8,13 +8,13 @@ resource "azurerm_linux_virtual_machine" "vm" {
   admin_username = var.admin_username
   admin_password = random_password.password.result
   disable_password_authentication = var.disable_password_authentication
-  source_image_id                 = var.source_image_id
-  # source_image_reference {
-  #   publisher = var.publisher
-  #   offer     = var.offer
-  #   sku       = var.sku
-  #   version   = var.storage_image_version
-  # }
+
+  source_image_reference {
+    publisher = var.publisher
+    offer     = var.offer
+    sku       = var.sku
+    version   = var.storage_image_version
+  }
 
   os_disk {
     name              = "${var.name}-disk"
@@ -112,21 +112,21 @@ resource "azurerm_backup_protected_vm" "backup_protected_vm" {
 }
 
 
-#Creates a Public IP for load balancer
-resource "azurerm_public_ip" "public_ip" {
-  name                = "${var.name}-public-ip"
-  resource_group_name = azurerm_linux_virtual_machine.vm.resource_group_name
-  location            = azurerm_linux_virtual_machine.vm.location
-  ip_version          = var.ip_version
-  sku                 = var.public_ip_sku
-  sku_tier            = var.public_ip_sku_tier
-  allocation_method   = var.allocation_method
-  lifecycle {
-    ignore_changes = [
-      tags,
-    ]
-  }
-}
+# #Creates a Public IP for load balancer
+# resource "azurerm_public_ip" "public_ip" {
+#   name                = "${var.name}-public-ip"
+#   resource_group_name = azurerm_linux_virtual_machine.vm.resource_group_name
+#   location            = azurerm_linux_virtual_machine.vm.location
+#   ip_version          = var.ip_version
+#   sku                 = var.public_ip_sku
+#   sku_tier            = var.public_ip_sku_tier
+#   allocation_method   = var.allocation_method
+#   lifecycle {
+#     ignore_changes = [
+#       tags,
+#     ]
+#   }
+# }
 
 
 #Creates a Load balancer
@@ -137,11 +137,11 @@ resource "azurerm_lb" "lb" {
   sku                 = var.lb_sku
   sku_tier            = var.lb_sku_tier
   frontend_ip_configuration {
-    name                 = "${var.name}-pubIP"
-    public_ip_address_id = azurerm_public_ip.public_ip.id
+    name                 = var.front_ip_name
+    public_ip_address_id = var.public_ip_address_id
   }
   depends_on = [
-    azurerm_public_ip.public_ip,
+    # azurerm_public_ip.public_ip,
     azurerm_linux_virtual_machine.vm
   ]
   lifecycle {
@@ -227,7 +227,7 @@ resource "random_password" "password" {
   min_special = 2
   min_upper   = 2
   numeric     = true
-  special     = true
+  special     = true 
   upper       = true
 
 }
