@@ -192,3 +192,10 @@ variable "public_ip_address_id" {
   type = string
   
 }
+variable "is_availabilityset_true" {
+  type = bool
+  
+}
+variable "availability_set_id" {
+  type = string  
+}
