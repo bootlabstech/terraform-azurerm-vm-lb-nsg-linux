@@ -143,12 +143,11 @@ resource "azurerm_lb" "lb" {
   sku                 = var.lb_sku
   sku_tier            = var.lb_sku_tier
   frontend_ip_configuration {
-    name                 = var.front_ip_name
-    public_ip_address_id = var.public_ip_address_id
+    name                 = "${var.name}-pubIP"
+    public_ip_address_id = azurerm_public_ip.public_ip.id
   }
   depends_on = [
-    # azurerm_public_ip.public_ip,
-    azurerm_linux_virtual_machine.vm
+     azurerm_linux_virtual_machine.vm
   ]
   lifecycle {
     ignore_changes = [
