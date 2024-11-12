@@ -118,21 +118,21 @@ resource "azurerm_backup_protected_vm" "backup_protected_vm" {
 }
 
 
-# #Creates a Public IP for load balancer
-# resource "azurerm_public_ip" "public_ip" {
-#   name                = "${var.name}-public-ip"
-#   resource_group_name = azurerm_linux_virtual_machine.vm.resource_group_name
-#   location            = azurerm_linux_virtual_machine.vm.location
-#   ip_version          = var.ip_version
-#   sku                 = var.public_ip_sku
-#   sku_tier            = var.public_ip_sku_tier
-#   allocation_method   = var.allocation_method
-#   lifecycle {
-#     ignore_changes = [
-#       tags,
-#     ]
-#   }
-# }
+#Creates a Public IP for load balancer
+resource "azurerm_public_ip" "public_ip" {
+  name                = "${var.name}-public-ip"
+  resource_group_name = azurerm_linux_virtual_machine.vm.resource_group_name
+  location            = azurerm_linux_virtual_machine.vm.location
+  ip_version          = var.ip_version
+  sku                 = var.public_ip_sku
+  sku_tier            = var.public_ip_sku_tier
+  allocation_method   = var.allocation_method
+  lifecycle {
+    ignore_changes = [
+      tags,
+    ]
+  }
+}
 
 
 #Creates a Load balancer
@@ -201,21 +201,7 @@ resource "azurerm_lb_rule" "lb_rule" {
 }
 
 
-# # Extention for startup ELK script
-# resource "azurerm_virtual_machine_extension" "example" {
-#   name                 = "${var.name}-elkscript"
-#   virtual_machine_id   = azurerm_linux_virtual_machine.vm.id
-#   publisher            = "Microsoft.Azure.Extensions"
-#   type                 = "CustomScript"
-#   type_handler_version = "2.0"
 
-#   settings = <<SETTINGS
-#     {
-#       "fileUris": ["https://sharedsaelk.blob.core.windows.net/elk-startup-script/elkscript.sh"],
-#       "commandToExecute": "sh elkscript.sh"
-#     }
-# SETTINGS
-# }
 
 # Getting existing Keyvault name to store credentials as secrets
 data "azurerm_key_vault" "key_vault" {
