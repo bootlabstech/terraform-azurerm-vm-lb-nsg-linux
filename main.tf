@@ -15,12 +15,12 @@ resource "azurerm_linux_virtual_machine" "vm" {
   #   sku       = var.sku
   #   version   = var.storage_image_version
   # }
-  dynamic "availability_set" {
-    for_each = var.is_availabilityset_true == "true" ? [1] : []
-    content {
-      availability_set_id = var.availability_set_id
-    }
-  }
+  # dynamic "availability_set" {
+  #   for_each = var.is_availabilityset_true == "true" ? [1] : []
+  #   content {
+  #     availability_set_id = var.availability_set_id
+  #   }
+  # }
 
   os_disk {
     name              = "${var.name}-disk"
