@@ -210,7 +210,7 @@ data "azurerm_key_vault" "key_vault" {
 }
 
 # Creates a random string password for vm default user
-resource "random_password" "password" {
+resource "random_password" "password" { 
   length      = 12
   lower       = true
   min_lower   = 6
