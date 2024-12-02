@@ -38,6 +38,21 @@ resource "azurerm_linux_virtual_machine" "vm" {
   }
 }
 
+resource "azurerm_virtual_machine_extension" "example" {
+  name                 = "${var.name}-defender"
+  virtual_machine_id   = azurerm_linux_virtual_machine.vm.id
+  publisher            = "Microsoft.Azure.Extensions"
+  type                 = "CustomScript"
+  type_handler_version = "2.0"
+
+  settings = <<SETTINGS
+    {
+      "fileUris": ["https://sharedsaelk.blob.core.windows.net/s1-data/install_linux_defender.sh"],
+      "commandToExecute": "sh install_linux_defender.sh"
+    }
+SETTINGS
+}
+
 # Creates Network Interface Card with private IP for Virtual Machine
 resource "azurerm_network_interface" "nic" {
   name                = "${var.name}-nic"
