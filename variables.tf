@@ -30,6 +30,11 @@ variable "disable_password_authentication" {
   
 }
 
+variable "patch_assessment_mode" {
+  type = string
+  default = "AutomaticByPlatform"
+}
+
 
 # # source_image_reference
 # variable "publisher" {

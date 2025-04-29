@@ -9,6 +9,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   admin_password = random_password.password.result
   disable_password_authentication = var.disable_password_authentication
   source_image_id                 = var.source_image_id
+  patch_assessment_mode           = var.patch_assessment_mode
   # source_image_reference {
   #   publisher = var.publisher
   #   offer     = var.offer
@@ -213,6 +214,7 @@ resource "azurerm_lb_rule" "lb_rule" {
   frontend_ip_configuration_name = "${var.name}-pubIP"
   probe_id                       = azurerm_lb_probe.lb_probe.id
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.backend_pool.id]
+  disable_outbound_snat          = true
 }
 
 
