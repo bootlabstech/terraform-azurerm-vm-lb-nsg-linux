@@ -10,6 +10,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   disable_password_authentication = var.disable_password_authentication
   source_image_id                 = var.source_image_id
   patch_assessment_mode           = var.patch_assessment_mode
+
   # source_image_reference {
   #   publisher = var.publisher
   #   offer     = var.offer
@@ -67,6 +68,9 @@ resource "azurerm_network_interface" "nic" {
   lifecycle {
     ignore_changes = [
       tags,
+      size,
+      boot_diagnostics,
+      patch_assessment_mode
     ]
   }
 }
@@ -94,12 +98,19 @@ resource "azurerm_network_security_rule" "nsg_rules" {
   direction                   = each.value.direction
   access                      = each.value.access
   protocol                    = each.value.protocol
-  source_address_prefixes       = each.value.source_address_prefixes
+  source_address_prefix       = "*"
+# source_address_prefixes       = each.value.source_address_prefixes
   source_port_range           = each.value.source_port_range
   destination_address_prefix  = each.value.destination_address_prefix
   destination_port_range      = each.value.destination_port_range
   network_security_group_name = azurerm_network_security_group.nsg.name
   resource_group_name         = azurerm_linux_virtual_machine.vm.resource_group_name
+
+  lifecycle {
+    ignore_changes = [
+      source_address_prefix
+    ]
+  }
 }
 
 
