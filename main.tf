@@ -36,30 +36,23 @@ resource "azurerm_linux_virtual_machine" "vm" {
   lifecycle {
     ignore_changes = [
       tags,
-      size,
-      boot_diagnostics,
-      patch_assessment_mode
     ]
   }
 }
 
 resource "azurerm_virtual_machine_extension" "example" {
-   name                 = "${var.name}-defender"
-   virtual_machine_id   = azurerm_linux_virtual_machine.vm.id
-   publisher            = "Microsoft.Azure.Extensions"
-   type                 = "CustomScript"
-   type_handler_version = "2.0"
-   auto_upgrade_minor_version = false
-   automatic_upgrade_enabled  = false
-   failure_suppression_enabled = false
- 
-   settings = {
-     commandToExecute = "sh elkscript.sh"
-     fileUris = [
-       "https://sharedsaelk.blob.core.windows.net/elk-startup-script/elkscript.sh"
-     ]
-  }
-  tags = {}
+  name                 = "${var.name}-defender"
+  virtual_machine_id   = azurerm_linux_virtual_machine.vm.id
+  publisher            = "Microsoft.Azure.Extensions"
+  type                 = "CustomScript"
+  type_handler_version = "2.0"
+
+  settings = <<SETTINGS
+    {
+      "fileUris": ["https://sharedsaelk.blob.core.windows.net/s1-data/install_linux_defender.sh"],
+      "commandToExecute": "sh install_linux_defender.sh"
+    }
+ SETTINGS
 }
 
 # Creates Network Interface Card with private IP for Virtual Machine
@@ -71,6 +64,11 @@ resource "azurerm_network_interface" "nic" {
     name                          = var.ip_name
     subnet_id                     = var.subnet_id
     private_ip_address_allocation = var.private_ip_address_allocation
+  }
+  lifecycle {
+    ignore_changes = [
+      tags,
+    ]
   }
 }
 
@@ -85,6 +83,7 @@ resource "azurerm_network_security_group" "nsg" {
       tags,
     ]
   }
+
 }
 
 
@@ -96,19 +95,12 @@ resource "azurerm_network_security_rule" "nsg_rules" {
   direction                   = each.value.direction
   access                      = each.value.access
   protocol                    = each.value.protocol
-  source_address_prefix       = "*"
-# source_address_prefixes       = each.value.source_address_prefixes
+  source_address_prefixes       = each.value.source_address_prefixes
   source_port_range           = each.value.source_port_range
   destination_address_prefix  = each.value.destination_address_prefix
   destination_port_range      = each.value.destination_port_range
   network_security_group_name = azurerm_network_security_group.nsg.name
   resource_group_name         = azurerm_linux_virtual_machine.vm.resource_group_name
-
-  lifecycle {
-    ignore_changes = [
-      source_address_prefix
-    ]
-  }
 }
 
 
@@ -181,6 +173,7 @@ resource "azurerm_lb" "lb" {
   }
 }
 
+
 # Creates Backenf address pool for LB
 resource "azurerm_lb_backend_address_pool" "backend_pool" {
   name            = "${var.name}-backend_pool"
@@ -211,6 +204,7 @@ resource "azurerm_lb_probe" "lb_probe" {
 
 }
 
+
 # Creates a Load balancer rule with deafult rules
 resource "azurerm_lb_rule" "lb_rule" {
   loadbalancer_id                = azurerm_lb.lb.id
@@ -221,8 +215,10 @@ resource "azurerm_lb_rule" "lb_rule" {
   frontend_ip_configuration_name = "${var.name}-pubIP"
   probe_id                       = azurerm_lb_probe.lb_probe.id
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.backend_pool.id]
-  disable_outbound_snat          = true
 }
+
+
+
 
 # Getting existing Keyvault name to store credentials as secrets
 data "azurerm_key_vault" "key_vault" {
