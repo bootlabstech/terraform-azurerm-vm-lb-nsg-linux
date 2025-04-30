@@ -181,7 +181,6 @@ resource "azurerm_lb" "lb" {
   }
 }
 
-
 # Creates Backenf address pool for LB
 resource "azurerm_lb_backend_address_pool" "backend_pool" {
   name            = "${var.name}-backend_pool"
@@ -211,7 +210,6 @@ resource "azurerm_lb_probe" "lb_probe" {
   port            = var.probe_ports
 
 }
-
 
 # Creates a Load balancer rule with deafult rules
 resource "azurerm_lb_rule" "lb_rule" {
