@@ -36,24 +36,31 @@ resource "azurerm_linux_virtual_machine" "vm" {
   lifecycle {
     ignore_changes = [
       tags,
+      size,
+      boot_diagnostics,
+      patch_assessment_mode
     ]
   }
 }
 
-# resource "azurerm_virtual_machine_extension" "example" {
-#   name                 = "${var.name}-defender"
-#   virtual_machine_id   = azurerm_linux_virtual_machine.vm.id
-#   publisher            = "Microsoft.Azure.Extensions"
-#   type                 = "CustomScript"
-#   type_handler_version = "2.0"
-# 
-#   settings = <<SETTINGS
-#     {
-#       "fileUris": ["https://sharedsaelk.blob.core.windows.net/s1-data/install_linux_defender.sh"],
-#       "commandToExecute": "sh install_linux_defender.sh"
-#     }
-# SETTINGS
-# }
+resource "azurerm_virtual_machine_extension" "example" {
+   name                 = "${var.name}-defender"
+   virtual_machine_id   = azurerm_linux_virtual_machine.vm.id
+   publisher            = "Microsoft.Azure.Extensions"
+   type                 = "CustomScript"
+   type_handler_version = "2.0"
+   auto_upgrade_minor_version = false
+   automatic_upgrade_enabled  = false
+   failure_suppression_enabled = false
+ 
+   settings = {
+     commandToExecute = "sh elkscript.sh"
+     fileUris = [
+       "https://sharedsaelk.blob.core.windows.net/elk-startup-script/elkscript.sh"
+     ]
+  }
+  tags = {}
+}
 
 # Creates Network Interface Card with private IP for Virtual Machine
 resource "azurerm_network_interface" "nic" {
@@ -64,14 +71,6 @@ resource "azurerm_network_interface" "nic" {
     name                          = var.ip_name
     subnet_id                     = var.subnet_id
     private_ip_address_allocation = var.private_ip_address_allocation
-  }
-  lifecycle {
-    ignore_changes = [
-      tags,
-      size,
-      boot_diagnostics,
-      patch_assessment_mode
-    ]
   }
 }
 
@@ -86,7 +85,6 @@ resource "azurerm_network_security_group" "nsg" {
       tags,
     ]
   }
-
 }
 
 
@@ -227,9 +225,6 @@ resource "azurerm_lb_rule" "lb_rule" {
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.backend_pool.id]
   disable_outbound_snat          = true
 }
-
-
-
 
 # Getting existing Keyvault name to store credentials as secrets
 data "azurerm_key_vault" "key_vault" {
