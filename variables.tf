@@ -113,7 +113,7 @@ variable "nsg_rules" {
       destination_port_range     = "443"
       direction                  = "Inbound"
       name                       = "allow-https"
-      priority                   = 100
+      priority                   = 102
       protocol                   = "Tcp"
       source_address_prefix      = "*"
       source_port_range          = "*"

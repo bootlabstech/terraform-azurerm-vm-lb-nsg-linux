@@ -8,6 +8,8 @@ resource "azurerm_linux_virtual_machine" "vm" {
   admin_username = var.admin_username
   admin_password = random_password.password.result
   disable_password_authentication = var.disable_password_authentication
+  patch_assessment_mode = "AutomaticByPlatform"
+  patch_mode = "AutomaticByPlatform"
 
   source_image_reference {
     publisher = var.publisher
@@ -28,6 +30,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   lifecycle {
     ignore_changes = [
       tags,
+      boot_diagnostics
     ]
   }
 }
@@ -121,6 +124,7 @@ resource "azurerm_public_ip" "public_ip" {
   sku                 = var.public_ip_sku
   sku_tier            = var.public_ip_sku_tier
   allocation_method   = var.allocation_method
+  idle_timeout_in_minutes = 5
   lifecycle {
     ignore_changes = [
       tags,
@@ -163,15 +167,15 @@ resource "azurerm_lb_backend_address_pool" "backend_pool" {
 
 
 # Creates association between LB and vm 
-resource "azurerm_network_interface_backend_address_pool_association" "backend_association" {
-  network_interface_id    = azurerm_network_interface.nic.id
-  ip_configuration_name   = var.ip_name
-  backend_address_pool_id = azurerm_lb_backend_address_pool.backend_pool.id
-  depends_on = [
-    azurerm_network_interface.nic,
-    azurerm_lb_backend_address_pool.backend_pool
-  ]
-}
+# resource "azurerm_network_interface_backend_address_pool_association" "backend_association" {
+#   network_interface_id    = azurerm_network_interface.nic.id
+#   ip_configuration_name   = var.ip_name
+#   backend_address_pool_id = azurerm_lb_backend_address_pool.backend_pool.id
+#   depends_on = [
+#     azurerm_network_interface.nic,
+#     azurerm_lb_backend_address_pool.backend_pool
+#   ]
+# }
 
 
 # Creates a load balancer probe
@@ -184,16 +188,16 @@ resource "azurerm_lb_probe" "lb_probe" {
 
 
 # Creates a Load balancer rule with deafult rules
-resource "azurerm_lb_rule" "lb_rule" {
-  loadbalancer_id                = azurerm_lb.lb.id
-  name                           = "htpps"
-  protocol                       = "Tcp"
-  frontend_port                  = 443
-  backend_port                   = 443
-  frontend_ip_configuration_name = "${var.name}-pubIP"
-  probe_id                       = azurerm_lb_probe.lb_probe.id
-  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.backend_pool.id]
-}
+# resource "azurerm_lb_rule" "lb_rule" {
+#   loadbalancer_id                = azurerm_lb.lb.id
+#   name                           = "htpps"
+#   protocol                       = "Tcp"
+#   frontend_port                  = 443
+#   backend_port                   = 443
+#   frontend_ip_configuration_name = "${var.name}-pubIP"
+#   probe_id                       = azurerm_lb_probe.lb_probe.id
+#   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.backend_pool.id]
+# }
 
 
 # Extention for startup ELK script
