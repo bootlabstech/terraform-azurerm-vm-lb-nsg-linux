@@ -8,8 +8,8 @@ resource "azurerm_linux_virtual_machine" "vm" {
   admin_username = var.admin_username
   admin_password = random_password.password.result
   disable_password_authentication = var.disable_password_authentication
-  patch_assessment_mode = "AutomaticByPlatform"
-  patch_mode = "AutomaticByPlatform"
+  patch_assessment_mode = var.patch_assessment_mode
+  patch_mode = var.patch_mode
 
   source_image_reference {
     publisher = var.publisher
@@ -125,6 +125,7 @@ resource "azurerm_public_ip" "public_ip" {
   sku_tier            = var.public_ip_sku_tier
   allocation_method   = var.allocation_method
   idle_timeout_in_minutes = 5
+  domain_name_label       = var.domain_name_label
   lifecycle {
     ignore_changes = [
       tags,

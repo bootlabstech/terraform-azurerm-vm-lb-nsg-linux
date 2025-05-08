@@ -178,3 +178,15 @@ variable "keyvault_name" {
   type = string
   
 }
+variable "domain_name_label" {
+  type = string
+  default = "apicopilot"
+}
+variable "patch_assessment_mode" {
+  type = string
+  default = "AutomaticByPlatform"
+}
+variable "patch_mode" {
+  type = string
+  default = "AutomaticByPlatform"
+}
