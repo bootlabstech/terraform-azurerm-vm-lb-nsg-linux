@@ -8,15 +8,9 @@ resource "azurerm_linux_virtual_machine" "vm" {
   admin_username = var.admin_username
   admin_password = random_password.password.result
   disable_password_authentication = var.disable_password_authentication
+  source_image_id                 = var.source_image_id
   patch_assessment_mode = var.patch_assessment_mode
   patch_mode = var.patch_mode
-
-  source_image_reference {
-    publisher = var.publisher
-    offer     = var.offer
-    sku       = var.sku
-    version   = var.storage_image_version
-  }
 
   os_disk {
     name              = "${var.name}-disk"
@@ -30,7 +24,6 @@ resource "azurerm_linux_virtual_machine" "vm" {
   lifecycle {
     ignore_changes = [
       tags,
-      boot_diagnostics
     ]
   }
 }
@@ -114,26 +107,6 @@ resource "azurerm_backup_protected_vm" "backup_protected_vm" {
   ]
 }
 
-
-#Creates a Public IP for load balancer
-resource "azurerm_public_ip" "public_ip" {
-  name                = "${var.name}-public-ip"
-  resource_group_name = azurerm_linux_virtual_machine.vm.resource_group_name
-  location            = azurerm_linux_virtual_machine.vm.location
-  ip_version          = var.ip_version
-  sku                 = var.public_ip_sku
-  sku_tier            = var.public_ip_sku_tier
-  allocation_method   = var.allocation_method
-  idle_timeout_in_minutes = 5
-  domain_name_label       = var.domain_name_label
-  lifecycle {
-    ignore_changes = [
-      tags,
-    ]
-  }
-}
-
-
 #Creates a Load balancer
 resource "azurerm_lb" "lb" {
   name                = "${var.name}-lb"
@@ -142,11 +115,11 @@ resource "azurerm_lb" "lb" {
   sku                 = var.lb_sku
   sku_tier            = var.lb_sku_tier
   frontend_ip_configuration {
-    name                 = "${var.name}-pubIP"
-    public_ip_address_id = azurerm_public_ip.public_ip.id
+    name                 = var.front_ip_name
+    public_ip_address_id = var.public_ip_address_id
   }
   depends_on = [
-    azurerm_public_ip.public_ip,
+    # azurerm_public_ip.public_ip,
     azurerm_linux_virtual_machine.vm
   ]
   lifecycle {
@@ -168,15 +141,15 @@ resource "azurerm_lb_backend_address_pool" "backend_pool" {
 
 
 # Creates association between LB and vm 
-# resource "azurerm_network_interface_backend_address_pool_association" "backend_association" {
-#   network_interface_id    = azurerm_network_interface.nic.id
-#   ip_configuration_name   = var.ip_name
-#   backend_address_pool_id = azurerm_lb_backend_address_pool.backend_pool.id
-#   depends_on = [
-#     azurerm_network_interface.nic,
-#     azurerm_lb_backend_address_pool.backend_pool
-#   ]
-# }
+resource "azurerm_network_interface_backend_address_pool_association" "backend_association" {
+  network_interface_id    = azurerm_network_interface.nic.id
+  ip_configuration_name   = var.ip_name
+  backend_address_pool_id = azurerm_lb_backend_address_pool.backend_pool.id
+  depends_on = [
+    azurerm_network_interface.nic,
+    azurerm_lb_backend_address_pool.backend_pool
+  ]
+}
 
 
 # Creates a load balancer probe
@@ -189,17 +162,16 @@ resource "azurerm_lb_probe" "lb_probe" {
 
 
 # Creates a Load balancer rule with deafult rules
-# resource "azurerm_lb_rule" "lb_rule" {
-#   loadbalancer_id                = azurerm_lb.lb.id
-#   name                           = "htpps"
-#   protocol                       = "Tcp"
-#   frontend_port                  = 443
-#   backend_port                   = 443
-#   frontend_ip_configuration_name = "${var.name}-pubIP"
-#   probe_id                       = azurerm_lb_probe.lb_probe.id
-#   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.backend_pool.id]
-# }
-
+resource "azurerm_lb_rule" "lb_rule" {
+  loadbalancer_id                = azurerm_lb.lb.id
+  name                           = "htpps"
+  protocol                       = "Tcp"
+  frontend_port                  = 443
+  backend_port                   = 443
+  frontend_ip_configuration_name = "${var.name}-pubIP"
+  probe_id                       = azurerm_lb_probe.lb_probe.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.backend_pool.id]
+}
 
 # Extention for startup ELK script
 resource "azurerm_virtual_machine_extension" "example" {
@@ -232,7 +204,7 @@ resource "random_password" "password" {
   min_special = 2
   min_upper   = 2
   numeric     = true
-  special     = true
+  special     = true 
   upper       = true
 
 }

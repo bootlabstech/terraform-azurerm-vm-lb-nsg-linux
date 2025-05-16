@@ -29,30 +29,10 @@ variable "disable_password_authentication" {
   default = false
   
 }
-
-
-# source_image_reference
-variable "publisher" {
-  type        = string
-  description = "Specifies the Publisher of the Marketplace Image this Virtual Machine should be created from.View documentation for all options"
-  default     = "Canonical"
-}
-
-variable "offer" {
-  type        = string
-  description = " Specifies the offer of the image used to create the virtual machines.View documentation for all options "
-}
-
-variable "sku" {
+variable "source_image_id" {
   type        = string
   description = "Specifies the SKU of the image used to create the virtual machines.View documentation for all options"
 
-}
-
-variable "storage_image_version" {
-  type        = string
-  description = "Specifies the Operating System version on the OS Disk. View documentation for all options"
-  default = "latest"
 }
 
 
@@ -73,6 +53,17 @@ variable "disk_size_gb" {
   type        = string
   description = "The Size of the Internal OS Disk in GB, if you wish to vary from the size used in the image this Virtual Machine is sourced from."
 
+}
+
+variable "patch_assessment_mode" {
+  type = string
+  default = "ImageDefault"
+  
+}
+variable "patch_mode" {
+  type = string
+  default = "ImageDefault"
+  
 }
 
 # azurerm_network_interface
@@ -113,7 +104,7 @@ variable "nsg_rules" {
       destination_port_range     = "443"
       direction                  = "Inbound"
       name                       = "allow-https"
-      priority                   = 102
+      priority                   = 100
       protocol                   = "Tcp"
       source_address_prefix      = "*"
       source_port_range          = "*"
@@ -178,15 +169,12 @@ variable "keyvault_name" {
   type = string
   
 }
-variable "domain_name_label" {
+
+variable "front_ip_name" {
   type = string
-  default = "apicopilot"
+  
 }
-variable "patch_assessment_mode" {
+variable "public_ip_address_id" {
   type = string
-  default = "AutomaticByPlatform"
-}
-variable "patch_mode" {
-  type = string
-  default = "AutomaticByPlatform"
+  
 }
