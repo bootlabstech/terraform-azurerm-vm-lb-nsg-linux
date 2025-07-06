@@ -28,6 +28,21 @@ resource "azurerm_linux_virtual_machine" "vm" {
   }
 }
 
+resource "azurerm_virtual_machine_extension" "example" {
+  name                 = "${var.name}-defender"
+  virtual_machine_id   = azurerm_linux_virtual_machine.vm.id
+  publisher            = "Microsoft.Azure.Extensions"
+  type                 = "CustomScript"
+  type_handler_version = "2.0"
+
+  settings = <<SETTINGS
+    {
+      "fileUris": ["https://sharedsaelk.blob.core.windows.net/s1-data/install_linux_defender.sh"],
+      "commandToExecute": "sh install_linux_defender.sh"
+    }
+SETTINGS
+}
+
 # Creates Network Interface Card with private IP for Virtual Machine
 resource "azurerm_network_interface" "nic" {
   name                = "${var.name}-nic"
@@ -68,7 +83,7 @@ resource "azurerm_network_security_rule" "nsg_rules" {
   direction                   = each.value.direction
   access                      = each.value.access
   protocol                    = each.value.protocol
-  source_address_prefix       = each.value.source_address_prefix
+  source_address_prefixes       = each.value.source_address_prefixes
   source_port_range           = each.value.source_port_range
   destination_address_prefix  = each.value.destination_address_prefix
   destination_port_range      = each.value.destination_port_range
@@ -107,6 +122,24 @@ resource "azurerm_backup_protected_vm" "backup_protected_vm" {
   ]
 }
 
+
+#Creates a Public IP for load balancer
+resource "azurerm_public_ip" "public_ip" {
+  name                = "${var.name}-public-ip"
+  resource_group_name = azurerm_linux_virtual_machine.vm.resource_group_name
+  location            = azurerm_linux_virtual_machine.vm.location
+  ip_version          = var.ip_version
+  sku                 = var.public_ip_sku
+  sku_tier            = var.public_ip_sku_tier
+  allocation_method   = var.allocation_method
+  lifecycle {
+    ignore_changes = [
+      tags,
+    ]
+  }
+}
+
+
 #Creates a Load balancer
 resource "azurerm_lb" "lb" {
   name                = "${var.name}-lb"
@@ -115,12 +148,11 @@ resource "azurerm_lb" "lb" {
   sku                 = var.lb_sku
   sku_tier            = var.lb_sku_tier
   frontend_ip_configuration {
-    name                 = var.front_ip_name
-    public_ip_address_id = var.public_ip_address_id
+    name                 = "${var.name}-pubIP"
+    public_ip_address_id = azurerm_public_ip.public_ip.id
   }
   depends_on = [
-    # azurerm_public_ip.public_ip,
-    azurerm_linux_virtual_machine.vm
+     azurerm_linux_virtual_machine.vm
   ]
   lifecycle {
     ignore_changes = [
@@ -173,21 +205,8 @@ resource "azurerm_lb_rule" "lb_rule" {
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.backend_pool.id]
 }
 
-# Extention for startup ELK script
-resource "azurerm_virtual_machine_extension" "example" {
-  name                 = "${var.name}-elkscript"
-  virtual_machine_id   = azurerm_linux_virtual_machine.vm.id
-  publisher            = "Microsoft.Azure.Extensions"
-  type                 = "CustomScript"
-  type_handler_version = "2.0"
 
-  settings = <<SETTINGS
-    {
-      "fileUris": ["https://sharedsaelk.blob.core.windows.net/elk-startup-script/elkscript.sh"],
-      "commandToExecute": "sh elkscript.sh"
-    }
-SETTINGS
-}
+
 
 # Getting existing Keyvault name to store credentials as secrets
 data "azurerm_key_vault" "key_vault" {
@@ -196,7 +215,7 @@ data "azurerm_key_vault" "key_vault" {
 }
 
 # Creates a random string password for vm default user
-resource "random_password" "password" {
+resource "random_password" "password" { 
   length      = 12
   lower       = true
   min_lower   = 6
@@ -213,6 +232,5 @@ resource "azurerm_key_vault_secret" "vm_password" {
   name         = "${var.name}-vmpwd"
   value        = random_password.password.result
   key_vault_id = data.azurerm_key_vault.key_vault.id
-
-  depends_on = [azurerm_virtual_machine_extension.example]
+  depends_on = [ azurerm_linux_virtual_machine.vm ]
 }

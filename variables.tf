@@ -29,6 +29,8 @@ variable "disable_password_authentication" {
   default = false
   
 }
+
+
 variable "source_image_id" {
   type        = string
   description = "Specifies the SKU of the image used to create the virtual machines.View documentation for all options"
@@ -53,17 +55,6 @@ variable "disk_size_gb" {
   type        = string
   description = "The Size of the Internal OS Disk in GB, if you wish to vary from the size used in the image this Virtual Machine is sourced from."
 
-}
-
-variable "patch_assessment_mode" {
-  type = string
-  default = "ImageDefault"
-  
-}
-variable "patch_mode" {
-  type = string
-  default = "ImageDefault"
-  
 }
 
 # azurerm_network_interface
@@ -92,7 +83,7 @@ variable "nsg_rules" {
     direction                  = string
     access                     = string
     protocol                   = string
-    source_address_prefix      = string
+    source_address_prefixes      = list(string)
     source_port_range          = string
     destination_address_prefix = string
     destination_port_range     = string
@@ -106,7 +97,23 @@ variable "nsg_rules" {
       name                       = "allow-https"
       priority                   = 100
       protocol                   = "Tcp"
-      source_address_prefix      = "*"
+      source_address_prefixes    = [
+         "173.245.48.0/20",
+         "103.21.244.0/22",
+         "103.22.200.0/22",
+         "103.31.4.0/22",
+         "141.101.64.0/18",
+         "108.162.192.0/18",
+         "190.93.240.0/20",
+         "188.114.96.0/20",
+         "197.234.240.0/22",
+         "198.41.128.0/17",
+         "162.158.0.0/15",
+         "104.16.0.0/13",
+         "104.24.0.0/14",
+         "172.64.0.0/13",
+         "131.0.72.0/22"
+        ]
       source_port_range          = "*"
     }
   }
@@ -170,11 +177,13 @@ variable "keyvault_name" {
   
 }
 
-variable "front_ip_name" {
+variable "patch_assessment_mode" {
   type = string
+  default = "ImageDefault"
   
 }
-variable "public_ip_address_id" {
+variable "patch_mode" {
   type = string
+  default = "ImageDefault"
   
 }
