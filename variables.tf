@@ -179,3 +179,13 @@ variable "patch_mode" {
   default = "ImageDefault"
   
 }
+variable "secure_boot_enabled" {
+  type = bool
+  default = "true"
+  
+}
+variable "vtpm_enabled" {
+  type = bool
+  default = "true"
+  
+}

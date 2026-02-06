@@ -11,6 +11,8 @@ resource "azurerm_linux_virtual_machine" "vm" {
   source_image_id                 = var.source_image_id
   patch_assessment_mode = var.patch_assessment_mode
   patch_mode = var.patch_mode
+  secure_boot_enabled = var.secure_boot_enabled
+  vtpm_enabled = var.vtpm_enabled
 
   os_disk {
     name              = "${var.name}-disk"
@@ -26,6 +28,11 @@ resource "azurerm_linux_virtual_machine" "vm" {
       tags,
     ]
   }
+}
+resource "azurerm_disk_access" "azurerm_disk_access" {
+  name                = "${var.name}-diskacc"
+  resource_group_name = var.resource_group_name
+  location            = var.location
 }
 
 resource "azurerm_virtual_machine_extension" "example" {
