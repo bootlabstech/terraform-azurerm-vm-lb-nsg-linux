@@ -9,10 +9,19 @@ resource "azurerm_linux_virtual_machine" "vm" {
   admin_password = random_password.password.result
   disable_password_authentication = var.disable_password_authentication
   source_image_id                 = var.source_image_id
-  patch_assessment_mode = var.patch_assessment_mode
-  patch_mode = var.patch_mode
   secure_boot_enabled = var.secure_boot_enabled
-  vtpm_enabled = var.vtpm_enabled
+  # source_image_reference {
+  #   publisher = var.publisher
+  #   offer     = var.offer
+  #   sku       = var.sku
+  #   version   = var.storage_image_version
+  # }
+  # dynamic "availability_set" {
+  #   for_each = var.is_availabilityset_true == "true" ? [1] : []
+  #   content {
+  #     availability_set_id = var.availability_set_id
+  #   }
+  # }
 
   os_disk {
     name              = "${var.name}-disk"
@@ -29,26 +38,21 @@ resource "azurerm_linux_virtual_machine" "vm" {
     ]
   }
 }
-resource "azurerm_disk_access" "azurerm_disk_access" {
-  name                = "${var.name}-diskacc"
-  resource_group_name = var.resource_group_name
-  location            = var.location
-}
 
-resource "azurerm_virtual_machine_extension" "example" {
-  name                 = "${var.name}-defender"
-  virtual_machine_id   = azurerm_linux_virtual_machine.vm.id
-  publisher            = "Microsoft.Azure.Extensions"
-  type                 = "CustomScript"
-  type_handler_version = "2.0"
-
-  settings = <<SETTINGS
-    {
-      "fileUris": ["https://sharedsaelk.blob.core.windows.net/s1-data/install_linux_defender.sh"],
-      "commandToExecute": "sh install_linux_defender.sh"
-    }
-SETTINGS
-}
+# resource "azurerm_virtual_machine_extension" "example" {
+#   name                 = "${var.name}-defender"
+#   virtual_machine_id   = azurerm_linux_virtual_machine.vm.id
+#   publisher            = "Microsoft.Azure.Extensions"
+#   type                 = "CustomScript"
+#   type_handler_version = "2.0"
+# 
+#   settings = <<SETTINGS
+#     {
+#       "fileUris": ["https://sharedsaelk.blob.core.windows.net/s1-data/install_linux_defender.sh"],
+#       "commandToExecute": "sh install_linux_defender.sh"
+#     }
+# SETTINGS
+# }
 
 # Creates Network Interface Card with private IP for Virtual Machine
 resource "azurerm_network_interface" "nic" {
@@ -105,7 +109,29 @@ resource "azurerm_network_interface_security_group_association" "security_group_
   network_security_group_id = azurerm_network_security_group.nsg.id
 }
 
+# Getting existing recovery_services_vault to add vm as a backup item 
+data "azurerm_recovery_services_vault" "services_vault" {
+  name                = var.recovery_services_vault_name
+  resource_group_name = var.services_vault_resource_group_name
+}
 
+# Getting existing Backup Policy for Virtual Machine
+data "azurerm_backup_policy_vm" "policy" {
+  name                = "VM-backup-policy"
+  recovery_vault_name = data.azurerm_recovery_services_vault.services_vault.name
+  resource_group_name = data.azurerm_recovery_services_vault.services_vault.resource_group_name
+}
+
+# Creates Backup protected Virtual Machine
+resource "azurerm_backup_protected_vm" "backup_protected_vm" {
+  resource_group_name = data.azurerm_recovery_services_vault.services_vault.resource_group_name
+  recovery_vault_name = data.azurerm_recovery_services_vault.services_vault.name
+  source_vm_id        = azurerm_linux_virtual_machine.vm.id
+  backup_policy_id    = data.azurerm_backup_policy_vm.policy.id
+  depends_on = [
+    azurerm_linux_virtual_machine.vm
+  ]
+}
 
 
 #Creates a Public IP for load balancer
