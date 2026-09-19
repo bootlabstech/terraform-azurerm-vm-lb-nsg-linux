@@ -204,3 +204,8 @@ variable "secure_boot_enabled" {
   type = bool
   
 }
+variable "environment" {
+  description = "The Keyvault name where VM password will be stored in"
+  type = string
+  
+}
